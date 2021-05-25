@@ -17,6 +17,7 @@ class FSM:
             "NS":[],
             "stim":[],
             "s_outputs":[],
+            "s_outputs_states":[],
             "s_outputs_conditions":[],
             "s_transitions_conditions": [],
             "outputs_length": [],
@@ -80,6 +81,7 @@ class FSM:
         self.dictionary["stim"] = self.get_string(self.fsm_file,3,self.reg_exp["transitions_str"])
         
         self.dictionary["s_outputs"] = self.get_string(self.fsm_file,2,self.reg_exp["s_outputs_str"])
+        self.dictionary["s_outputs_states"] = self.get_string(self.fsm_file,1,self.reg_exp["s_outputs_str"])
         self.dictionary["s_outputs_conditions"] = self.get_string(self.fsm_file,3,self.reg_exp["s_outputs_str"])
         self.dictionary["s_transitions_conditions"] = self.get_string(self.fsm_file,3,self.reg_exp["transitions_str"])
         # Replace , by && and = by ==
@@ -149,12 +151,16 @@ class FSM:
                     l = 1
             else:
                 index_states.append(l)
+        print(self.dictionary["PS"])
+        print(self.dictionary["s_transitions_conditions"])
+        print(self.dictionary["NS"])
+        print(index_states)
         i = 0   #index for index_states
         j = 0   #index for PS (0,4)
         k = 0   #Index iterations number
         l = 0   #Index for NS and Stim (0,8)
 
-        while (j < len(self.dictionary["PS"])-1):
+        while (j < len(self.dictionary["PS"])):
             fsm_file.write("\n                "+self.dictionary["PS"][j]+":")
             for k in range(0,index_states[i]):
                 if(k==0):
@@ -183,24 +189,68 @@ class FSM:
 
         # Output Logic
         # s0, s1,s2,s3... 
+        print(self.dictionary["s_outputs"])
+        print(self.dictionary["s_outputs_conditions"])
+        print(self.dictionary["s_outputs_states"])
+        #----------s_output_states index: [1,2,2]-----------
+        out_index = []
+        l = 1
+        for j in range(0,len(self.dictionary["s_outputs_states"])):
+            if(j!= len(self.dictionary["s_outputs_states"])-1):
+                if(self.dictionary["s_outputs_states"][j] == self.dictionary["s_outputs_states"][j+1]):
+                    l = l + 1
+                else:
+                    out_index.append(l)
+                    l = 1
+            else:
+                out_index.append(l)
+
+        print(out_index)
+
         fsm_file.write("\n    always @(STATE) begin \n" )
         fsm_file.write("        case(STATE)\n" )
-        for i in range(0,len(self.dictionary["states"])):
-            fsm_file.write("            " + self.dictionary["states"][i] + ":\n")
-            if (self.dictionary["s_outputs_conditions"][i] == "-"):
-                fsm_file.write("                begin \n                  " + self.dictionary["s_outputs"][i] + ";\n")
-            else:
-                fsm_file.write("                if(" + self.dictionary["s_outputs_conditions"][i] + ") begin ")
-                fsm_file.write("\n                  " + self.dictionary["s_outputs"][i] + ";\n")                
-            fsm_file.write("                end\n")
-        fsm_file.write("        endcase\n")
-        fsm_file.write("    end\n" )
-        fsm_file.write("endmodule" )    
 
+        
+        i = 0   #index for index_states
+        j = 0   #index for PS (0,4)
+        k = 0   #Index iterations number
+        l = 0   #Index for NS and Stim (0,8)
+
+        while (j < len(self.dictionary["s_outputs_states"])):
+            fsm_file.write("\n                "+self.dictionary["s_outputs_states"][j]+":")
+            for k in range(0,out_index[i]):
+                if(k==0):
+                    if(self.dictionary["s_outputs_conditions"][l]!="-"):    
+                        fsm_file.write("\n                    if("+self.dictionary["s_outputs_conditions"][l]+")")
+                        fsm_file.write("\n                      begin")
+                        fsm_file.write("\n                        " + self.dictionary["s_outputs"][l] + ";")
+                        fsm_file.write("\n                      end\n")
+                    else:
+                        fsm_file.write("\n                      begin")
+                        fsm_file.write("\n                       " + self.dictionary["s_outputs"][l] + ";")
+                        fsm_file.write("\n                      end")
+                else:
+                    if(self.dictionary["s_outputs_conditions"][l]!="-"):    
+                        fsm_file.write("\n                    else if("+self.dictionary["s_outputs_conditions"][l]+")")
+                        fsm_file.write("\n                      begin")
+                        fsm_file.write("\n                        " + self.dictionary["s_outputs"][l]+";")
+                        fsm_file.write("\n                      end\n")
+                    else:
+                        fsm_file.write("\n                    else ")
+                        fsm_file.write("\n                      begin")
+                        fsm_file.write("\n                        " + self.dictionary["s_outputs"][l]+";")
+                        fsm_file.write("\n                      end")
+                l += 1
+            j += out_index[i]
+            i += 1
     
+        fsm_file.write("\n        endcase\n")
+        fsm_file.write("    end\n" )
+        fsm_file.write("endmodule" )
+            
 if __name__ == "__main__":
     fsm1 = FSM() 
-    fsm1.fsm_file = "FSM_description2.txt"
+    fsm1.fsm_file = "Mealy.txt"
     fsm1.append_data()
     fsm1.write_FSM()
     
