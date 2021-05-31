@@ -1,6 +1,7 @@
 #include <iostream> // std::cout
 #include <stdio.h>
 #include <fstream>  // std::ifstream
+#include <sstream>
 #include <regex>
 #include <list>
 #include <iterator>
@@ -9,9 +10,9 @@
 #include <math.h>      
 using namespace std;
 
-string module_name_str = "name.=.(.+?(?=\\r))";
-string clock_name_str = "clock.=.(.+?(?=\\r))";
-string reset_name_str = "reset.=.(.+?(?=\r))";
+string module_name_str = "name.=.(.+)"; //name.=.(.+?(?=\\r))
+string clock_name_str = "clock.=.(.+)"; //clock.=.(.+?(?=\\r))
+string reset_name_str = "reset.=.(.+)"; //reset.=.(.+?(?=\r))
 string states_str = "states.=.\\((.+)\\)";
 string inputs_str = "inputs.=.\\((.+)\\)";
 string outputs_str = "outputs.=.\\((.+)\\)";

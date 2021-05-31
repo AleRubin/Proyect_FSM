@@ -253,4 +253,3 @@ if __name__ == "__main__":
     fsm1.fsm_file = "Mealy.txt"
     fsm1.append_data()
     fsm1.write_FSM()
-    
